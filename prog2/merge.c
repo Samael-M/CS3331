@@ -1,9 +1,10 @@
 /* ----------------------------------------------------------- */
 /* NAME : Samuel Milner                          */
-/* DUE DATE : 02/17/21                                       */
+/* DUE DATE : 02/18/21                                       */
 /* PROGRAM ASSIGNMENT #2                                        */
 /* PROGRAM PURPOSE:                                           */
-/*           */
+/*  Merge Sort using shared memory
+    uses fork to have a child for each element of two arrays and merges.         */
 /* ----------------------------------------------------------- */
 
 
