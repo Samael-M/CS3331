@@ -26,20 +26,30 @@
 
 int main(int argc, char* argv[]) {
 
+    printf("Quicksort and Binary Merge with Multiple Processes:\n");
+
     //int to hold size of array
     int sizeOfA = 0;
     int sizeOfX = 0;
     int sizeOfY = 0;
-    int i;
-    
-    printf("Quicksort and Binary Merge with Multiple Processes:\n");
     key_t key1;
     int ShmID1;
     int* a;
+    key_t key2;
+    int ShmID2;
+    int* x;
+    key_t key3;
+    int ShmID3;
+    int* y;
+    key_t key4;
+    int ShmID4;
+    int* xy;
+    int i;
+
+    scanf("%d", &sizeOfA);
     key1 = ftok("./", 'x');
     printf("*** MAIN: shared memory1 key1 = %d\n", key1);
-    scanf("%d", &sizeOfA);
-    ShmID1 = shmget(key1, sizeOfA*sizeof(int), IPC_CREAT | 0666);
+    ShmID1 = shmget(key1, sizeOfA*sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
     printf("*** MAIN: shared memory1 created\n");
     a = (int *) shmat(ShmID1, NULL, 0);
     //loop through and scanf size times to fill array from input
@@ -52,12 +62,9 @@ int main(int argc, char* argv[]) {
     }
     printf("*** MAIN: shared memory1 attached and ready to use\n");
 
-    key_t key2;
-    int ShmID2;
-    int* x;
+    scanf("%d", &sizeOfX);
     key2 = ftok("./", 'y');
     printf("*** MAIN: shared memory key2 = %d\n", key2);
-    scanf("%d", &sizeOfX);
     ShmID2 = shmget(key2, sizeOfX*sizeof(int), IPC_CREAT | 0666);
     printf("*** MAIN: shared memory2 created\n");
     x = (int *) shmat(ShmID2, NULL, 0);
@@ -70,12 +77,9 @@ int main(int argc, char* argv[]) {
     }
     printf("*** MAIN: shared memory2 attached and ready to use\n");
 
-    key_t key3;
-    int ShmID3;
-    int* y;
+    scanf("%d", &sizeOfY);
     key3 = ftok("./", 'z');
     printf("*** MAIN: shared memory key3 = %d\n", key3);
-    scanf("%d", &sizeOfY);
     ShmID3 = shmget(key3, sizeOfY*sizeof(int), IPC_CREAT | 0666);
     printf("*** MAIN: shared memory3 created\n");
     y = (int *) shmat(ShmID3, NULL, 0);
@@ -88,9 +92,6 @@ int main(int argc, char* argv[]) {
     }
     printf("*** MAIN: shared memory3 attached and ready to use\n");
 
-    key_t key4;
-    int ShmID4;
-    int* xy;
     key4 = ftok("./", 'a');
     printf("*** MAIN: shared memory key4 = %d\n", key4);
     ShmID4 = shmget(key4, (sizeOfX + sizeOfY)*sizeof(int), IPC_CREAT | 0666);
@@ -118,6 +119,7 @@ int main(int argc, char* argv[]) {
     }
     printf("\n");
 
+
     char left[11];
     sprintf(left, "%d", 0);
     char right[11];
@@ -134,29 +136,50 @@ int main(int argc, char* argv[]) {
     }
     else if(pid1 == 0) {
         if(execvp("./qsort", argx) < 0) {
-            printf("ERROR: execvp failed\n");
+            printf("###     ERROR: Execute qsort failed\n");
         }
         exit(1);
     }
 
     char m[] = {"merge"};
-    char* argz[2];
+    char sx[11];
+    char sy[11];
+    char sxy[11];
+    sprintf(sx, "%d", sizeOfX);
+    sprintf(sy, "%d", sizeOfY);
+    sprintf(sxy, "%d", sizeOfX+sizeOfY);
+    char* argz[5];
     argz[0] = m;
-    argz[1] = '\0';
+    argz[1] = sx;
+    argz[2] = sy;
+    argz[3] = sxy;
+    argz[4] = '\0';
+    int errnum;
     pid_t pid2; 
     pid2 = fork();
     if(pid2 < 0) {
         printf("Process doesn't exist!\n");
     }
     else if(pid2 == 0) {
-        execvp("./merge", argz);
+        if(execvp("./merge", argz) < 0) {
+            printf("###      ERROR: Execute Merge failed\n");
+            errnum = errno;
+            printf("%s\n", strerror(errnum));
+        }
+        printf("###      ERROR: Something went Wrong\n");
         exit(1);
     }
-    while(wait(NULL) > 0);
+    while(wait(NULL) > 0){}
 
     printf("Input array for qsort has %d elements:\n", sizeOfA);
     for(i = 0; i < sizeOfA; i++) {
         printf(" %d", a[i]);
+    }
+    printf("\n");
+
+    printf("Merged array:\n");
+    for(i = 0; i < sizeOfX+sizeOfY; i++) {
+        printf(" %d", xy[i]);
     }
     printf("\n");
 
