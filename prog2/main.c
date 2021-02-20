@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     key_t key4;
     int ShmID4;
     int* xy;
+    char buff[100];
     int i;
 
     scanf("%d", &sizeOfA);
@@ -120,26 +121,26 @@ int main(int argc, char* argv[]) {
     printf("\n");
 
 
-    char left[11];
-    sprintf(left, "%d", 0);
-    char right[11];
-    sprintf(right, "%d", sizeOfA-1);
-    char* argx[4];
-    argx[0] = "qsort";
-    argx[1] = left;
-    argx[2] = right;
-    argx[3] = NULL;
-    pid_t pid1;
-    pid1 = fork();
-    if(pid1 < 0) {
-        printf("ERROR: Process doesn't exist!\n");
-    }
-    else if(pid1 == 0) {
-        if(execvp("./qsort", argx) < 0) {
-            printf("###     ERROR: Execute qsort failed\n");
-        }
-        exit(1);
-    }
+    // char left[11];
+    // sprintf(left, "%d", 0);
+    // char right[11];
+    // sprintf(right, "%d", sizeOfA-1);
+    // char* argx[4];
+    // argx[0] = "qsort";
+    // argx[1] = left;
+    // argx[2] = right;
+    // argx[3] = NULL;
+    // pid_t pid1;
+    // pid1 = fork();
+    // if(pid1 < 0) {
+    //     printf("ERROR: Process doesn't exist!\n");
+    // }
+    // else if(pid1 == 0) {
+    //     if(execvp("./qsort", argx) < 0) {
+    //         printf("###     ERROR: Execute qsort failed\n");
+    //     }
+    //     exit(1);
+    // }
 
     char m[] = {"merge"};
     char sx[11];
@@ -171,13 +172,17 @@ int main(int argc, char* argv[]) {
     }
     while(wait(NULL) > 0){}
 
-    printf("Input array for qsort has %d elements:\n", sizeOfA);
-    for(i = 0; i < sizeOfA; i++) {
-        printf(" %d", a[i]);
-    }
-    printf("\n");
+    sprintf(buff, "*** MAIN: sorted array by qsort\n\t");
+    write(1, buff, strlen(buff));
 
-    printf("Merged array:\n");
+    for(i = 0; i < sizeOfA; i++) {
+        sprintf(buff, " %d", a[i]);
+        write(1, buff, strlen(buff));
+    }
+    sprintf(buff, "\n");
+    write(1, buff, strlen(buff));
+
+    printf("*** MAIN: merged array:\n\t");
     for(i = 0; i < sizeOfX+sizeOfY; i++) {
         printf(" %d", xy[i]);
     }

@@ -34,8 +34,11 @@ void swap(int *a, int* b) {
 }
 
 int partition(int array[], int left, int right) {
+    char buff[100];
+    int id = getpid();
     int i = left;
     int M = array[right];
+    sprintf(buff, "   $$$ Q-PROC(%d): pivot element is a[%d] == %d", id, right, M);
     int j;
     for(j = left; j < right; j++) {
         if(array[j] < M) {
@@ -87,11 +90,11 @@ void quicksort(int array[], int left, int right) {
         exit(1);
     }
     pid2 = fork();
-    if(pid1 < 0) {
+    if(pid2 < 0) {
         sprintf(buff, "   ### ERROR: Process doesn't exist!\n");
         write(1, buff, strlen(buff));
     }
-    else if(pid1 == 0) {
+    else if(pid2 == 0) {
         if(execvp("./qsort", argz) < 0) {
             sprintf(buff, "   ### ERROR Execution failed\n");
             write(1, buff, strlen(buff));
@@ -103,6 +106,7 @@ void quicksort(int array[], int left, int right) {
 int main(int argc, char* argv[]) {
 
     char buff[100];
+    char num[11];
     int id;
     id = getpid();
     int errnum;
@@ -113,9 +117,7 @@ int main(int argc, char* argv[]) {
     int ShmID;
     int key;
     int* a;
-
-    sprintf(buff, "   ### Q-PROC(%d) Entering with a[%d..%d]\n", id, left, right);
-    write(1, buff, strlen(buff));
+    int i;
 
     key = ftok("./", 'x');
     int size = right-left;
@@ -123,20 +125,31 @@ int main(int argc, char* argv[]) {
     a = (int *) shmat(ShmID, NULL, 0);
     if(a == (void *)-1) { 
         sprintf(buff, "   ### Q-PROC(%d) ERROR: couldn't attach memory\n", id);
-        write(1, buff, strlen(buff));
         errnum = errno;
         sprintf(buff, "   ### Q-PROC(%d) ERROR: %s\n", id, strerror(errnum));
-        write(1, buff, strlen(buff));
         exit(errno);
     }
+
+    sprintf(buff, "   ### Q-PROC(%d) Entering with a[%d..%d]\n\t", id, left, right);
+    for(i = left; i <= right; i++) {
+        sprintf(num, " %d", a[i]);
+        strcat(buff, num);
+    }
+    strcat(buff, "\n");
+    write(1, buff, strlen(buff));
+
     if(left < right) {
         quicksort(a, left, right);
         while(wait(NULL) > 0) {}
     }
     while(wait(NULL) > 0) {}
 
+    sprintf(buff, "   ### Q_PROC(%d): section a[%d..%d] sorted\n", id, left, right);
+    write(1, buff, strlen(buff));
     shmdt((void *) a);
     sprintf(buff, "   ### Q-PROC(%d): qsort shared memory successfully detached\n", id);
+    write(1, buff, strlen(buff));
+    sprintf(buff, "   ### Q_PROC(%d): exits\n", id);
     write(1, buff, strlen(buff));
     
 }

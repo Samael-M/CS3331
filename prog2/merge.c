@@ -39,7 +39,8 @@ int binarySearch(int k, int x[], int n) {
 
 int main(int argc, char* argv[]) {
 
-char buff[100];
+    char buff[1000];
+    char buff2[1000];
     int id;
     id = getpid();
     int errnum;
@@ -53,8 +54,6 @@ char buff[100];
     sx = atoi(argv[1]);
     sy = atoi(argv[2]);
     sxy = atoi(argv[3]);
-    sprintf(buff, "   $$$ M-PROC(%d) sx %d, sy %d, sxy %d\n", id, sx, sy, sxy);
-    write(1, buff, strlen(buff));
     int* x; //[] = {1, 3};
     int* y; //[] = {2, 4};
     int* xy; //[sxy];
@@ -109,15 +108,28 @@ char buff[100];
             write(1, buff, strlen(buff));
         }
         else if(pid == 0) {
+            sprintf(buff, "   $$$ M-PROC(%d) handling x[%d] = %d\n", id, i, x[i]);
+            write(1, buff, strlen(buff));
             if(x[i] < y[0]) {
+                sprintf(buff, "   $$$ M-PROC(%d) x[%d] = %d is found to be smaller than y[0] = %d\n", id, i, x[i], y[0]);
+                sprintf(buff2, "   $$$ M-PROC(%d) about to write x[%d] = %d into position %d of the output array\n", id, i, x[i], i);
+                strcat(buff, buff2);
+                write(1, buff, strlen(buff));
                 xy[i] = x[i];
             }
             else if(x[i] > y[sy - 1]) {
+                sprintf(buff, "   $$$ M-PROC(%d) x[%d] = %d is found to be larger than y[%d] = %d\n", id, i, x[i], sy-1, y[sy-1]);
+                sprintf(buff2, "   $$$ M-PROC(%d) about to write x[%d] = %d into position %d of the output array\n", id, i, x[i], sy+i);
+                strcat(buff, buff2);
+                write(1, buff, strlen(buff));
                 xy[sy+i] = x[i];
             }
             else {
                 int k = binarySearch(x[i], y, sy);
-                printf("k: %d\n", k+1);
+                sprintf(buff, "   $$$ M-PROC(%d) x[%d] = %d is found between y[%d] = %d and y[%d] = %d\n", id, i, x[i], k-1, y[k-1], k, y[k]);
+                sprintf(buff2, "   $$$ M-PROC(%d) about to write x[%d] = %d into position %d of the output array\n", id, i, x[i], k+i);
+                strcat(buff, buff2);
+                write(1, buff, strlen(buff));
                 xy[i+k] = x[i];
             }
             exit(1);
@@ -131,15 +143,28 @@ char buff[100];
             write(1, buff, strlen(buff));
         }
         else if(pid == 0) {
+            sprintf(buff, "   $$$ M-PROC(%d) handling y[%d] = %d\n", id, i, x[i]);
+            write(1, buff, strlen(buff));
             if(y[i] < x[0]) {
+                sprintf(buff, "   $$$ M-PROC(%d) y[%d] = %d is found to be smaller than x[0] = %d\n", id, i, y[i], x[0]);
+                sprintf(buff2, "   $$$ M-PROC(%d) about to write y[%d] = %d into position %d of the output array\n", id, i, y[i], i);
+                strcat(buff, buff2);
+                write(1, buff, strlen(buff));
                 xy[i] = y[i];
             }
             else if(y[i] > x[sx-1]) {
+                sprintf(buff, "   $$$ M-PROC(%d) y[%d] = %d is found to be larger than x[%d] = %d\n", id, i, y[i], sx-1, y[sx-1]);
+                sprintf(buff2, "   $$$ M-PROC(%d) about to write y[%d] = %d into position %d of the output array\n", id, i, y[i], sx+i);
+                strcat(buff, buff2);
+                write(1, buff, strlen(buff));
                 xy[sx+i] = y[i];
             }
             else {
                 int k = binarySearch(y[i], x, sx);
-                printf("k: %d\n", k+1);
+                sprintf(buff, "   $$$ M-PROC(%d) y[%d] = %d is found between x[%d] = %d and x[%d] = %d\n", id, i, y[i], k-1, x[k-1], k, x[k]);
+                sprintf(buff2, "   $$$ M-PROC(%d) about to write y[%d] = %d into position %d of the output array\n", id, i, y[i], k+i);
+                strcat(buff, buff2);
+                write(1, buff, strlen(buff));
                 xy[i+k] = y[i];
             }
             exit(1);
@@ -148,15 +173,10 @@ char buff[100];
     }
     while(wait(NULL) > 0) {}
 
-    for(i = 0; i < sxy; i++) {
-        sprintf(buff, "   xy[%d]\n", xy[i]);
-        //write(1, buff, strlen(buff));
-        printf("%d ", xy[i]);
-    }
-    printf("\n");
-
     shmdt((void *) x);
     shmdt((void *) y);
     shmdt((void *) xy);
+    sprintf(buff, "   $$$ M-PROC(%d)exits\n", id);
+    write(1, buff, strlen(buff));
     
 }
